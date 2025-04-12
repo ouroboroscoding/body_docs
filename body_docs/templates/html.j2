@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <title>{{ name }} Service</title>
+   <meta charset="utf-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+   <link rel="stylesheet" href="https://ouroboroscoding.s3.us-east-2.amazonaws.com/styling/oc-styling.min.css" />
+   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  </head>
+  <body class="padding-6">
+   <h1>{{ name }}</h1>
+   <p>{{ description }}</p>
+{% for req in requests %}
+   <div id="{{ req.uri }}" class="card padding-6 margin-6" x-data="{ open: false }">
+     <h2>{{ req.name }}</h2>
+     <p>{{ req.description }}</p>
+     <div class="tabs small max-width-sm" x-data="{ tab: '{{ body if body else 'body' }}' }">
+{% if body %}      <div class="tab" :class="tab == '{{ body }}' && 'selected'" @click="tab = '{{ body }}'">{{ body }}</div>
+{% endif %}
+      <div class="tab" :class="tab == 'body' && 'selected'" @click="tab = 'body'">body</div>
+      <div class="tab" :class="tab == 'curl' && 'selected'" @click="tab = 'curl'">curl</div>
+     </div>
+   </div>
+{% endfor %}
+	</body>
+</html>
