@@ -2,25 +2,150 @@
 <html>
  <head>
   <title>{{ name }} Service</title>
-   <meta charset="utf-8" />
-   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-   <link rel="stylesheet" href="https://ouroboroscoding.s3.us-east-2.amazonaws.com/styling/oc-styling.min.css" />
-   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  </head>
-  <body class="padding-6">
-   <h1>{{ name }}</h1>
-   <p>{{ description }}</p>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+  <!-- Base styling -->
+  <link rel="stylesheet" href="./oc-styling.css" />
+  <style>
+    .card h2 { font-size: 1.2em; transition: all 0.5s; }
+    .card .content { max-height: 0px; opacity: 0; overflow-y: hidden; transition: all 1s; }
+    .card.open { background-color:#ececec; transition: all 1s; }
+    .card.open h2 { font-size: 1.5em; }
+    .card.open .content { max-height: 70vh; opacity: 1; overflow-y: auto; }
+    pre { margin: 0; }
+  </style>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
+
+  <!-- Highlight: Syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+  
+  <!-- Alpine.js: Simple interactivity -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+ </head>
+ <body class="padding-6">
+  <h1>{{ name }}</h1>
+  <p>{{ description }}</p>
 {% for req in requests %}
-   <div id="{{ req.uri }}" class="card padding-6 margin-6" x-data="{ open: false }">
-     <h2>{{ req.name }}</h2>
-     <p>{{ req.description }}</p>
-     <div class="tabs small max-width-sm" x-data="{ tab: '{{ body if body else 'body' }}' }">
-{% if body %}      <div class="tab" :class="tab == '{{ body }}' && 'selected'" @click="tab = '{{ body }}'">{{ body }}</div>
-{% endif %}
-      <div class="tab" :class="tab == 'body' && 'selected'" @click="tab = 'body'">body</div>
-      <div class="tab" :class="tab == 'curl' && 'selected'" @click="tab = 'curl'">curl</div>
-     </div>
+  <div
+   id="{{ req.uri }}"
+   class="card padding-6 margin-6" :class="open && 'open'"
+   x-data="{ open: false, tab: '{{ body if body else 'body' }}' }"
+  >
+   <div class="flex-columns" @click="open = !open" style="cursor: pointer">
+    <h2 class="flex-dynamic">{{ req.name }}</h2>
+    <i class="padding-9 fa-solid" :class="open ? 'fa-caret-up' : 'fa-caret-down'"></i>
    </div>
+   <p>{{ req.description }}</p>
+   <div class="content padding-3" :class="open && 'open'">
+    <div class="tabs small max-width-sm">
+{% if body %}     <div class="tab" :class="tab == '{{ body }}' && 'selected'" @click="tab = '{{ body }}'">@ouroboros/{{ body }}</div>
+{% endif %}
+     <div class="tab" :class="tab == 'body' && 'selected'" @click="tab = 'body'">@ouroboros/body</div>
+     <div class="tab" :class="tab == 'curl' && 'selected'" @click="tab = 'curl'">curl</div>
+    </div>
+{% if body %}
+    <pre><code class="language-javascript" x-show="tab == '{{ body }}'" >import {{ body }} from '@ouroboros/{{ body }}';
+{{ body }}.{{ req.action }}(
+  '{{ req.uri }}'{% if req.data %}, {% if req.data_example %}{{ req.data_example }}{% else %}request
+{% endif %}{% else %} 
+{% endif %}
+).then(data => {}, error => {});</code></pre>
+{% endif %}
+    <pre><code class="language-javascript" x-show="tab == 'body'" >import body from '@ouroboros/body';
+body.{{ req.action }}(
+  '{{ uri }}', '{{ req.uri }}'{% if req.data %}, {% if req.data_example %}{{ req.data_example }}{% else %}request
+{% endif %}{% else %} 
+{% endif %}
+).then(data => {}, error => {});</code></pre>
+{% if req.data %}
+{% if req.data is string %}
+    <h3>Request</h3>
+    <p>{{ req.data }}</p>
+{% else %}
+    <h3>Request parameters</h3>
+    <table class="params">
+     <thead><tr>
+      <th>name</th>
+      <th class="center">type</th>
+      <th class="center">optional</th>
+      <th>description</th>
+     </tr></thead>
+     <tbody>
+{% for var in req.data %}
+      <tr>
+       <td>{{ var.name }}</td>
+       <td class="center">{{ var.type }}</td>
+       <td class="center">{{ var.optional }}</td>
+       <td>{{ var.descr }}</td>
+      </tr>
 {% endfor %}
-	</body>
+     </tbody>
+    </table>
+{% endif %}
+{% endif %}
+{% if req.response_example %}
+    <h3>Response example</h3>
+    <pre><code class="language-json">{{ req.response_example }}</code></pre>
+{% endif %}
+{% if req.response %}
+{% if req.response is string %}
+    <h3>Response</h3>
+    <p>{{ req.response }}</p>
+{% else %}
+    <h3>Response variables</h3>
+    <table class="params">
+     <thead><tr>
+      <th>name</th>
+      <th class="center">type</th>
+      <th>description</th>
+     </tr></thead>
+     <tbody>
+{% for var in req.response %}
+      <tr>
+       <td>{{ var.name }}</td>
+       <td class="center">{{ var.type }}</td>
+       <td>{{ var.descr }}</td>
+      </tr>
+{% endfor %}
+     </tbody>
+    </table>
+{% endif %}
+{% endif %}
+{% if req.error %}
+{% if req.error is string %}
+    <h3>Error</h3>
+    <p>{{ req.error }}</p>
+{% else %}
+    <h3>Error</h3>
+    <table class="params">
+     <thead><tr>
+      <th>name</th>
+      <th>constant</th>
+      <th>description</th>
+     </tr></thead>
+     <tbody>
+{% for var in req.error %}
+      <tr>
+       <td>{{ var.code }}</td>
+       <td>{{ var.const }}</td>
+       <td>{{ var.descr}}</td>
+      </tr>
+{% endfor %}
+     </tbody>
+    </table>
+{% endif %}
+{% endif %}
+   </div>
+  </div>
+{% endfor %}
+ <script>hljs.highlightAll();</script>
+ </body>
 </html>
