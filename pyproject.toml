@@ -1,0 +1,32 @@
+[build-system]
+requires = [ "hatchling" ]
+build-backend = "hatchling.build"
+
+[project]
+name = "body_docs"
+version = "1.0.0"
+description = "Provides a cli to generate documentation using body services"
+authors = [
+    {name = "Chris Nasr - Ouroboros Coding Inc.", email = "chris@ouroboroscoding.com"}
+]
+maintainers = [
+    {name = "Chris Nasr - Ouroboros Coding Inc.", email = "chris@ouroboroscoding.com"}
+]
+license-files = [ "LICENSE" ]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+	'Jinja2>=3.1.5,<3.2',
+	'strings-oc>=1.0.7,<1.1'
+]
+
+[project.scripts]
+body-docs = "body_docs.__main__:cli"
+
+[project.urls]
+Documentation = "https://github.com/ouroboroscoding/body_docs"
+Source = "https://github.com/ouroboroscoding/body_docs"
+Tracker = "https://github.com/ouroboroscoding/body_docs/issues"
+
+[tool.hatch.build]
+packages = [ "body_docs" ]

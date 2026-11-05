@@ -32,7 +32,7 @@ def cli() -> int:
 	)
 	oArgParser.add_argument(
 		'-f', '--format', default='markdown',
-		help='The format to out the documentation in. Supports: %s' %
+		help='The format to output the documentation in. Supports: %s' %
 			', '.join(EXTENSIONS.keys())
 	)
 	oArgParser.add_argument(

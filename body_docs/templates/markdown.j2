@@ -19,15 +19,15 @@ import {{ body }} from '@ouroboros/{{ body }}';
 {% if req.data_example %}const request = {{ req.data_example }};
 {% endif %}
 {{ body }}.{{ req.action }}(
-  '{{ req.uri }}'{% if req.data %}, request{% endif %} 
-).then(data => {}, error => {});
+  '{{ req.uri }}'{% if req.data or req.data_example %}, request{% endif %} 
+).then(res => { });
 		{% else %}
 ```javascript
 import body from '@ouroboros/body';
 {% if req.data_example %}const request = {{ req.data_example }};{% endif %} 
 body.{{ req.action }}(
-  '{{ uri }}', '{{ req.uri }}'{% if req.data %}, request{% endif %} 
-).then(data => {}, error => {});
+  '{{ uri }}', '{{ req.uri }}'{% if req.data or req.data_example %}, request{% endif %} 
+).then(res => { });
 		{% endif %}
 ```
 	{% endif %}

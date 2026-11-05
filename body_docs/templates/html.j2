@@ -15,7 +15,7 @@
     .card.open .content { max-height: 70vh; opacity: 1; overflow-y: auto; }
     pre { margin: 0; }
   </style>
-  
+
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
 
@@ -25,7 +25,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/json.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
-  
+
   <!-- Alpine.js: Simple interactivity -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -49,22 +49,27 @@
 {% if body %}     <div class="tab" :class="tab == '{{ body }}' && 'selected'" @click="tab = '{{ body }}'">@ouroboros/{{ body }}</div>
 {% endif %}
      <div class="tab" :class="tab == 'body' && 'selected'" @click="tab = 'body'">@ouroboros/body</div>
+     <div class="tab" :class="tab == 'body_oc' && 'selected'" @click="tab = 'body_oc'">body_oc</div>
      <div class="tab" :class="tab == 'curl' && 'selected'" @click="tab = 'curl'">curl</div>
     </div>
 {% if body %}
-    <pre><code class="language-javascript" x-show="tab == '{{ body }}'" >import {{ body }} from '@ouroboros/{{ body }}';
-{{ body }}.{{ req.action }}(
-  '{{ req.uri }}'{% if req.data %}, {% if req.data_example %}{{ req.data_example }}{% else %}request
-{% endif %}{% else %} 
+    <pre><code class="language-javascript" x-show="tab == '{{ body }}'">import {{ body }} from '@ouroboros/{{ body }}';
+{{ body }}.{{ req.action }}('{{ req.uri }}'{% if req.data %}, {% if req.data_example %}{{ req.data_example }}{% else %}request{% endif %}
+{% else %} 
 {% endif %}
-).then(data => {}, error => {});</code></pre>
+).then(res => {});</code></pre>
 {% endif %}
-    <pre><code class="language-javascript" x-show="tab == 'body'" >import body from '@ouroboros/body';
-body.{{ req.action }}(
-  '{{ uri }}', '{{ req.uri }}'{% if req.data %}, {% if req.data_example %}{{ req.data_example }}{% else %}request
-{% endif %}{% else %} 
+    <pre><code class="language-javascript" x-show="tab == 'body'">import body from '@ouroboros/body';
+body.{{ req.action }}('{{ uri }}', '{{ req.uri }}'{% if req.data %}, {% if req.data_example %}{{ req.data_example }}{% else %}request{% endif %}
+{% else %}{% endif %}
+).then(res => {});</code></pre>
+    <pre><code class="language-python" x-show="tab == 'body_oc'">from body import {{ req.action }}
+res = {{ req.action }}('{{ uri }}', '{{ req.uri }}', { {% if req.data %}'data': {% if req.data_example %}{{ req.data_example }}{% else %}request {% endif %}{% else %}}{% endif %})</code></pre>
+    <pre><code class="language-bash" x-show="tab == 'curl'">curl --request {{ req.method }} \
+  --header "Content-Type: application/json; charset=utf8" \
+{% if req.data %}  --data '{% if req.data_example %}{{ req.data_example }}{% else %}{}{% endif %}' \
 {% endif %}
-).then(data => {}, error => {});</code></pre>
+  https://rest.mydomain.com/{{ uri }}/{{ req.uri }}</code></pre>
 {% if req.data %}
 {% if req.data is string %}
     <h3>Request</h3>
@@ -91,10 +96,6 @@ body.{{ req.action }}(
     </table>
 {% endif %}
 {% endif %}
-{% if req.response_example %}
-    <h3>Response example</h3>
-    <pre><code class="language-json">{{ req.response_example }}</code></pre>
-{% endif %}
 {% if req.response %}
 {% if req.response is string %}
     <h3>Response</h3>
@@ -118,6 +119,10 @@ body.{{ req.action }}(
      </tbody>
     </table>
 {% endif %}
+{% endif %}
+{% if req.response_example %}
+    <h3>Response example</h3>
+    <pre><code class="language-json">{{ req.response_example }}</code></pre>
 {% endif %}
 {% if req.error %}
 {% if req.error is string %}

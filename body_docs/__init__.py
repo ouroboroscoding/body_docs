@@ -25,6 +25,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 # Local imports
 from .parser import parse_google
+from .preprocessor import preprocess_html
 
 # Regular expressions
 _data = re.compile(
@@ -37,6 +38,12 @@ _response = re.compile(r'^([^,]+)\s*,\s*([^,]+)\s*,\s*(.+)$')
 EXTENSIONS = {
 	'html': 'html',
 	'markdown': 'md'
+}
+METHODS = {
+	'create': 'POST',
+	'delete': 'DELETE',
+	'read': 'GET',
+	'update': 'PUT'
 }
 
 def handle_class(
@@ -204,6 +211,7 @@ def handle_method(
 	# Init the return
 	dRet = {
 		'action': lParts[-1],
+		'method': METHODS[lParts[-1]],
 		'noun': ' '.join(lParts[:-1]),
 		'uri': '/'.join(lParts[:-1])
 	}
@@ -259,31 +267,39 @@ def handle_method(
 	# If we have a response section
 	if 'response' in dSections:
 
-		# Split response into lines, strip whitespace
-		lLines = [ s.strip() for s in dSections['response'].split('\n') ]
+		# If the first line starts with a !, just ignore any attempt to process
+		#	it
+		if dSections['response'].startswith('!'):
+			dRet['response'] = dSections['response'][1:]
 
-		# Init response
-		lResponse = []
-
-		# Go through each line
-		for s in lLines:
-
-			# Match it
-			m = _response.match(s)
-			if m:
-				lResponse.append({
-					'name': m.group(1),
-					'type': m.group(2),
-					'descr': m.group(3)
-				})
-
-		# If we have any, add it
-		if lResponse:
-			dRet['response'] = lResponse
-
-		# Else, just pass the original string
+		# Else, step through each line
 		else:
-			dRet['response'] = dSections['response']
+
+			# Split response into lines, strip whitespace
+			lLines = [ s.strip() for s in dSections['response'].split('\n') ]
+
+			# Init response
+			lResponse = [ ]
+
+			# Go through each line
+			for s in lLines:
+
+				# Check for a response format match
+				m = _response.match(s)
+				if m:
+					lResponse.append({
+						'name': m.group(1),
+						'type': m.group(2),
+						'descr': m.group(3)
+					})
+
+			# If we have any, add it
+			if lResponse:
+				dRet['response'] = lResponse
+
+			# Else, just pass the original string
+			else:
+				dRet['response'] = dSections['response']
 
 	# If we have a response example
 	if 'response_example' in dSections:
@@ -349,6 +365,10 @@ def generate_service(
 		lstrip_blocks = True,
 		trim_blocks = True
 	)
+
+	# If it's html, scan for links and replace them
+	if format == 'html':
+		preprocess_html(service)
 
 	# Get the template based on the format
 	oTpl = oJinja.get_template('%s.j2' % format)
